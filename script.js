@@ -52,8 +52,10 @@ function displayMovie(movie) {
   let lastRow = rows[rows.length - 1];
   const movieRate = Number(movieRating);
   // let videoID = uploadUrl.split("/").pop();
+  const videoId = movie.movieurl.split("/").pop();
+  const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+
   const embedURL = movie.embedUrl || "about:blank";
-  console.log("Embed URL:", embedURL);
 
   for (i = 0; i <= movieRate; i++) {}
 
@@ -64,12 +66,17 @@ function displayMovie(movie) {
   }
 
   const movieColDiv = document.createElement("div");
-  movieColDiv.className = "col-12 col-md-6 col-lg-3 mb-2 ";
+  movieColDiv.className = "col-12 col-md-6 col-lg-3 mb-3 ";
   const movieDiv = document.createElement("div");
   const topDiv = document.createElement("div");
   const bottomDiv = document.createElement("div");
-  movieDiv.className = "card border-0 equal-div h-100 shadow-sm ";
+  movieDiv.className = "card w-100 border-0 equal-div h-100 shadow-sm ";
   topDiv.className = "top-div";
+
+  // Set the background image to the thumbnail
+  topDiv.style.backgroundImage = `url(${thumbnailUrl})`;
+  topDiv.style.backgroundSize = "cover"; // To cover the entire div
+  topDiv.style.backgroundPosition = "center"; // To center the image
 
   // Add data attributes for Bootstrap popover
   topDiv.setAttribute("data-bs-toggle", "popover");
@@ -77,19 +84,21 @@ function displayMovie(movie) {
   topDiv.setAttribute("title", movie.title);
   topDiv.setAttribute("data-bs-trigger", "hover");
   topDiv.setAttribute("data-bs-placement", "bottom");
+  // topDiv.style.backgroundImage
   topDiv.innerHTML = `
-    <div style="height: 23rem;">
-     <i class="fas fa-arrows-alt float-end bg-light rounded-5 m-2" style="font-size: 20px; color: navy"></i>
-      <iframe
-        src="${embedURL}"
-        title="YouTube video player"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"
-        allowfullscreen
-        style="width: 100%; height: 100%;"
-      ></iframe>
-     
+     <div style="height: 23rem;" class="d-flex justify-content-center align-content-center align-items-center">
+        <div style=" width: 88%; height: 76%;" class="shadow-lg">
+            <i class="fa-solid fa-ellipsis-vertical fa-arrows-alt float-end bg-light rounded-5 m-2" style="font-size: 20px; color: navy; position: absolute; top: 10px; right: 10px;"></i>
+            <iframe
+                src="${embedURL}"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen
+                style="width: 100%; height: 100%;"
+            ></iframe>
+        </div>
     </div>
   `;
   const dropdown = document.createElement("div");
@@ -161,7 +170,7 @@ function displayMovie(movie) {
   });
 
   bottomDiv.innerHTML = `
-    <div class="card-body d-flex flex-column justify-content-center align-items-center mt-4 ">
+    <div class="card-body d-flex flex-column justify-content-center align-items-center mt-1 ">
     
                       <h5 class="card-title">${movie.title}</h5>
                       <h6 class="card-subtitle mb-2 text-muted">Year: (${
@@ -200,39 +209,34 @@ function displayMovie(movie) {
 //  end of displayMovies function
 
 function updateMovie(originalTitle) {
-  // Get the current values from the form
   const updatedTitle = document.getElementById("movie_title").value;
   const updatedDescription = document.getElementById("m_description").value;
   const updatedUrl = document.getElementById("mlink").value;
   const updatedRating = document.getElementById("rating").value;
   const updatedYear = document.getElementById("year").value;
 
-  // Retrieve the original movie data
-  let originalMovie = JSON.parse(localStorage.getItem(originalTitle));
+  const videoID = updatedUrl.split("/").pop();
+  const updatedEmbedUrl = `https://www.youtube.com/embed/${videoID}`;
 
-  // Update the movie object only with new values if they have changed
   let updatedMovie = {
-    title: updatedTitle !== "" ? updatedTitle : originalMovie.title,
-    description:
-      updatedDescription !== ""
-        ? updatedDescription
-        : originalMovie.description,
-    movieurl: updatedUrl !== "" ? updatedUrl : originalMovie.movieurl,
-    embedUrl:
-      updatedUrl !== ""
-        ? `https://www.youtube.com/embed/${updatedUrl.split("/").pop()}`
-        : originalMovie.embedUrl,
-    rating: updatedRating !== "" ? updatedRating : originalMovie.rating,
-    year: updatedYear !== "" ? updatedYear : originalMovie.year,
+    title: updatedTitle,
+    description: updatedDescription,
+    movieurl: updatedUrl,
+    embedUrl: updatedEmbedUrl,
+    rating: updatedRating,
+    year: updatedYear,
   };
 
   // Remove the old movie entry if the title was changed
-  if (originalTitle !== updatedTitle) {
-    localStorage.removeItem(originalTitle);
-  }
 
-  // Save the updated movie to localStorage
-  localStorage.setItem(updatedMovie.title, JSON.stringify(updatedMovie));
+  if (updatedTitle === "") {
+    updatedTitle === originalTitle;
+  } else if (originalTitle !== updatedTitle) {
+    localStorage.removeItem(originalTitle);
+    // localStorage.setItem(updatedTitle, JSON.stringify(updatedMovie));
+  } else {
+    localStorage.setItem(originalTitle, JSON.stringify(updatedMovie));
+  }
 
   // Reload the movies display
   document.getElementById("moviesContainer").innerHTML = ""; // Clear the container

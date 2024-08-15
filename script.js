@@ -43,7 +43,7 @@ function addMovie() {
 
 // Function to display the movies
 
-function displayMovie(movie) {
+async function displayMovie(movie) {
   const moviesContainer = document.getElementById("moviesContainer");
   const movieRating = document.getElementById("rating").value;
   const uploadUrl = document.getElementById("mlink").value;

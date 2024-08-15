@@ -6,55 +6,42 @@ class Movie {
     this.embedUrl = "";
     this.rating = "";
     this.year = new Date().getFullYear();
-    this.imageUrl = "";
   }
-}
-
-function extractVideoID(url) {
-  const regex = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/;
-  const match = url.match(regex);
-  return match ? match[1] : "";
 }
 
 function addMovie() {
   const movieTitle = document.getElementById("movie_title").value;
-  const movieDescription = document.getElementById("m_description").value;
+  const moviedescription = document.getElementById("m_description").value;
   const uploadUrl = document.getElementById("mlink").value;
   const movieRating = document.getElementById("rating").value;
   const movieYear = document.getElementById("year").value;
 
-  const videoID = extractVideoID(uploadUrl);
-  const embedURL = videoID ? `https://www.youtube.com/embed/${videoID}` : "";
+  const videoID = uploadUrl.split("/").pop();
+  const embedURL = `https://www.youtube.com/embed/${videoID}`;
 
   let movie = new Movie();
   movie.title = movieTitle;
-  movie.description = movieDescription;
+  movie.description = moviedescription;
   movie.movieurl = uploadUrl;
-  movie.embedUrl = embedURL;
+  movie.embedUrl = embedURL; // Embedded URL
   movie.rating = movieRating;
   movie.year = movieYear;
-  movie.imageUrl = `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`; // Get video thumbnail
 
-  const submitButton = document.querySelector("#movieForm button");
-  const isEditing = submitButton.dataset.editing;
+  localStorage.setItem(movie.title, JSON.stringify(movie));
+  // console.log(localStorage.getItem(book));
+  displayMovie(movie);
 
-  if (isEditing) {
-    localStorage.removeItem(isEditing); //removes the old movie
-    localStorage.setItem(movie.title, JSON.stringify(movie));
-    updateMovieCard(isEditing, movie); //updates the new movie
+  console.log(
+    `this movie is title ${movieTitle}: here' a description of it : ${moviedescription} it was released in the year: ${movieYear} here is the url ${movie.movieurl}.`
+  );
 
-    // Reset form to "Add Movie" state
-    resetForm();
-  } else {
-    localStorage.setItem(movie.title, JSON.stringify(movie));
-    displayMovie(movie);
+  // Clear the form fields after adding the book
+  document.getElementById("movieForm").reset();
 
-    // Reset form to be ready for a new entry
-    resetForm();
-  }
-
-  console.log(`Movie ${isEditing ? "updated" : "added"}: ${movie.title}`);
+  return movie;
 }
+
+// Function to display the movies
 
 async function displayMovie(movie) {
   const moviesContainer = document.getElementById("moviesContainer");
@@ -99,21 +86,21 @@ async function displayMovie(movie) {
   topDiv.setAttribute("data-bs-placement", "bottom");
   // topDiv.style.backgroundImage
   topDiv.innerHTML = `
-     <div style="height: 23rem;" class="d-flex justify-content-center align-content-center align-items-center">
-        <div style=" width: 88%; height: 76%;" class="shadow-lg">
-            <i class="fa-solid fa-ellipsis-vertical fa-arrows-alt float-end bg-light rounded-5 m-2" style="font-size: 20px; color: navy; position: absolute; top: 10px; right: 10px;"></i>
-            <iframe
-                src="${embedURL}"
-                title="YouTube video player"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerpolicy="strict-origin-when-cross-origin"
-                allowfullscreen
-                style="width: 100%; height: 100%;"
-            ></iframe>
-        </div>
-    </div>
-  `;
+       <div style="height: 23rem;" class="d-flex justify-content-center align-content-center align-items-center">
+          <div style=" width: 88%; height: 76%;" class="shadow-lg">
+              <i class="fa-solid fa-ellipsis-vertical fa-arrows-alt float-end bg-light rounded-5 m-2" style="font-size: 20px; color: navy; position: absolute; top: 10px; right: 10px;"></i>
+              <iframe
+                  src="${embedURL}"
+                  title="YouTube video player"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerpolicy="strict-origin-when-cross-origin"
+                  allowfullscreen
+                  style="width: 100%; height: 100%;"
+              ></iframe>
+          </div>
+      </div>
+    `;
   const dropdown = document.createElement("div");
   dropdown.style.position = "absolute";
   dropdown.style.top = "30px";
@@ -123,11 +110,11 @@ async function displayMovie(movie) {
   dropdown.style.boxShadow = "0px 4px 8px rgba(0, 0, 0, 0.1)";
   dropdown.style.display = "none";
   dropdown.innerHTML = `
-    <ul style="list-style: none; padding: 0; margin: 0;">
-      <li class="edit" style="padding: 10px; cursor: pointer;">Edit Movie</li>
-      <li class="del" style="padding: 10px; cursor: pointer;">Delete Movie</li>
-    </ul>
-  `;
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        <li class="edit" style="padding: 10px; cursor: pointer;">Edit Movie</li>
+        <li class="del" style="padding: 10px; cursor: pointer;">Delete Movie</li>
+      </ul>
+    `;
 
   topDiv.appendChild(dropdown);
 
@@ -183,19 +170,19 @@ async function displayMovie(movie) {
   });
 
   bottomDiv.innerHTML = `
-    <div class="card-body d-flex flex-column justify-content-center align-items-center mt-1 ">
-    
-                      <h5 class="card-title">${movie.title}</h5>
-                      <h6 class="card-subtitle mb-2 text-muted">Year: (${
-                        movie.year
-                      })</h6>
-                      <div class="star-rating">Rating: ${generateStars(
-                        movie.rating
-                      )}</div>
-                    
-                  </div>
-    
-    `;
+      <div class="card-body d-flex flex-column justify-content-center align-items-center mt-1 ">
+      
+                        <h5 class="card-title">${movie.title}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Year: (${
+                          movie.year
+                        })</h6>
+                        <div class="star-rating">Rating: ${generateStars(
+                          movie.rating
+                        )}</div>
+                      
+                    </div>
+      
+      `;
   movieColDiv.appendChild(movieDiv);
   movieDiv.appendChild(topDiv);
   movieDiv.appendChild(bottomDiv);
@@ -273,13 +260,16 @@ function updateMovie(originalTitle) {
 
 // Function to generate stars
 function generateStars(rating) {
-  const starCount = Math.min(Math.max(rating, 0), 5);
+  const starCount = Math.min(Math.max(rating, 0), 5); //Set the rating between 0 - 5
   let stars = "";
   for (let i = 0; i < starCount; i++) {
     stars += `<i class="fas fa-star text-warning"></i>`;
   }
   return stars;
 }
+
+// generate stars function ends
+// Load Movies Function begins
 
 function loadMovies() {
   for (let i = 0; i < localStorage.length; i++) {
@@ -302,26 +292,60 @@ function loadMovies() {
       }
     } catch (e) {
       console.error(`Error parsing JSON for key "${key}":`, e);
+      // Optionally, remove the invalid entry from local storage
       localStorage.removeItem(key);
     }
   }
 }
 
-function resetForm() {
-  // Reset form fields
-  document.getElementById("movieForm").reset();
+function searchMovies() {
+  const searchInput = document
+    .getElementById("searchInput")
+    .value.toLowerCase()
+    .trim();
+  const moviesContainer = document.getElementById("moviesContainer");
 
-  // Reset button text and state
-  const submitButton = document.querySelector("#movieForm button");
-  submitButton.textContent = "Add Movie"; // Ensure button text is reset
-  submitButton.dataset.editing = ""; // Ensure editing state is cleared
+  // Clear the container
+  moviesContainer.innerHTML = "";
+
+  // Retrieve and filter movies
+  const allMovies = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    const movieData = localStorage.getItem(key);
+    try {
+      const movie = JSON.parse(movieData);
+      if (
+        movie &&
+        movie.title &&
+        movie.title.toLowerCase().includes(searchInput)
+      ) {
+        allMovies.push(movie);
+      }
+    } catch (e) {
+      console.error(`Error parsing JSON for key "${key}":`, e);
+      localStorage.removeItem(key);
+    }
+  }
+
+  // Display filtered movies
+  if (allMovies.length > 0) {
+    allMovies.forEach((movie) => displayMovie(movie));
+  } else {
+    moviesContainer.innerHTML = "<p>No movies found.</p>";
+  }
 }
 
+// Load movies function ends
 document
   .getElementById("movieForm")
   .addEventListener("submit", function (event) {
     event.preventDefault();
     addMovie();
   });
+document
+  .querySelector(".btn.shadow-lg")
+  .addEventListener("click", searchMovies);
+document.getElementById("searchInput").addEventListener("keyup", searchMovies);
 
 window.onload = loadMovies;

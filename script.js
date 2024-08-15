@@ -6,42 +6,55 @@ class Movie {
     this.embedUrl = "";
     this.rating = "";
     this.year = new Date().getFullYear();
+    this.imageUrl = "";
   }
+}
+
+function extractVideoID(url) {
+  const regex = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : "";
 }
 
 function addMovie() {
   const movieTitle = document.getElementById("movie_title").value;
-  const moviedescription = document.getElementById("m_description").value;
+  const movieDescription = document.getElementById("m_description").value;
   const uploadUrl = document.getElementById("mlink").value;
   const movieRating = document.getElementById("rating").value;
   const movieYear = document.getElementById("year").value;
 
-  const videoID = uploadUrl.split("/").pop();
-  const embedURL = `https://www.youtube.com/embed/${videoID}`;
+  const videoID = extractVideoID(uploadUrl);
+  const embedURL = videoID ? `https://www.youtube.com/embed/${videoID}` : "";
 
   let movie = new Movie();
   movie.title = movieTitle;
-  movie.description = moviedescription;
+  movie.description = movieDescription;
   movie.movieurl = uploadUrl;
-  movie.embedUrl = embedURL; // Embedded URL
+  movie.embedUrl = embedURL;
   movie.rating = movieRating;
   movie.year = movieYear;
+  movie.imageUrl = `https://img.youtube.com/vi/${videoID}/hqdefault.jpg`; // Get video thumbnail
 
-  localStorage.setItem(movie.title, JSON.stringify(movie));
-  // console.log(localStorage.getItem(book));
-  displayMovie(movie);
+  const submitButton = document.querySelector("#movieForm button");
+  const isEditing = submitButton.dataset.editing;
 
-  console.log(
-    `this movie is title ${movieTitle}: here' a description of it : ${moviedescription} it was released in the year: ${movieYear} here is the url ${movie.movieurl}.`
-  );
+  if (isEditing) {
+    localStorage.removeItem(isEditing); //removes the old movie
+    localStorage.setItem(movie.title, JSON.stringify(movie));
+    updateMovieCard(isEditing, movie); //updates the new movie
 
-  // Clear the form fields after adding the book
-  document.getElementById("movieForm").reset();
+    // Reset form to "Add Movie" state
+    resetForm();
+  } else {
+    localStorage.setItem(movie.title, JSON.stringify(movie));
+    displayMovie(movie);
 
-  return movie;
+    // Reset form to be ready for a new entry
+    resetForm();
+  }
+
+  console.log(`Movie ${isEditing ? "updated" : "added"}: ${movie.title}`);
 }
-
-// Function to display the movies
 
 async function displayMovie(movie) {
   const moviesContainer = document.getElementById("moviesContainer");
@@ -260,16 +273,13 @@ function updateMovie(originalTitle) {
 
 // Function to generate stars
 function generateStars(rating) {
-  const starCount = Math.min(Math.max(rating, 0), 5); //Set the rating between 0 - 5
+  const starCount = Math.min(Math.max(rating, 0), 5);
   let stars = "";
   for (let i = 0; i < starCount; i++) {
     stars += `<i class="fas fa-star text-warning"></i>`;
   }
   return stars;
 }
-
-// generate stars function ends
-// Load Movies Function begins
 
 function loadMovies() {
   for (let i = 0; i < localStorage.length; i++) {
@@ -292,60 +302,26 @@ function loadMovies() {
       }
     } catch (e) {
       console.error(`Error parsing JSON for key "${key}":`, e);
-      // Optionally, remove the invalid entry from local storage
       localStorage.removeItem(key);
     }
   }
 }
 
-function searchMovies() {
-  const searchInput = document
-    .getElementById("searchInput")
-    .value.toLowerCase()
-    .trim();
-  const moviesContainer = document.getElementById("moviesContainer");
+function resetForm() {
+  // Reset form fields
+  document.getElementById("movieForm").reset();
 
-  // Clear the container
-  moviesContainer.innerHTML = "";
-
-  // Retrieve and filter movies
-  const allMovies = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    const movieData = localStorage.getItem(key);
-    try {
-      const movie = JSON.parse(movieData);
-      if (
-        movie &&
-        movie.title &&
-        movie.title.toLowerCase().includes(searchInput)
-      ) {
-        allMovies.push(movie);
-      }
-    } catch (e) {
-      console.error(`Error parsing JSON for key "${key}":`, e);
-      localStorage.removeItem(key);
-    }
-  }
-
-  // Display filtered movies
-  if (allMovies.length > 0) {
-    allMovies.forEach((movie) => displayMovie(movie));
-  } else {
-    moviesContainer.innerHTML = "<p>No movies found.</p>";
-  }
+  // Reset button text and state
+  const submitButton = document.querySelector("#movieForm button");
+  submitButton.textContent = "Add Movie"; // Ensure button text is reset
+  submitButton.dataset.editing = ""; // Ensure editing state is cleared
 }
 
-// Load movies function ends
 document
   .getElementById("movieForm")
   .addEventListener("submit", function (event) {
     event.preventDefault();
     addMovie();
   });
-document
-  .querySelector(".btn.shadow-lg")
-  .addEventListener("click", searchMovies);
-document.getElementById("searchInput").addEventListener("keyup", searchMovies);
 
 window.onload = loadMovies;
